@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="referrer">
+  <title>{% block title %}AgroGuide AI{% endblock %}</title>
+  {% load static %}
+  <link rel="stylesheet" href="{% static 'css/style.css' %}">
+  <!-- Leaflet -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  {% block extra_head %}{% endblock %}
+</head>
+<body>
+<div class="app-wrapper">
+
+  {% if user.is_authenticated %}
+  <!-- ── SIDEBAR ── -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <span class="logo-icon">🌾</span>
+      <div>
+        <div class="logo-text">AgroGuide AI</div>
+        <div class="logo-sub">SMART FARM AGENT</div>
+      </div>
+    </div>
+
+    {% if active_farm %}
+    <div class="farm-badge">
+      <div class="badge-label">ACTIVE FARM</div>
+      <div class="badge-name">{{ active_farm.name }}</div>
+      <div class="badge-info">📍 {{ active_farm.state }} &nbsp;·&nbsp; {{ active_farm.size_hectares }} ha</div>
+      <div class="badge-info">🧱 {{ active_farm.get_soil_type_display }}</div>
+    </div>
+    {% endif %}
+
+    <nav class="sidebar-nav">
+      <a href="{% url 'dashboard' %}"          class="nav-item {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+        <span class="nav-icon">🏠</span> Dashboard
+        {% if request.resolver_match.url_name == 'dashboard' %}<span class="nav-dot"></span>{% endif %}
+      </a>
+      <a href="{% url 'farm_list' %}"          class="nav-item {% if 'farm' in request.resolver_match.url_name %}active{% endif %}">
+        <span class="nav-icon">🌿</span> My Farms
+        {% if 'farm' in request.resolver_match.url_name %}<span class="nav-dot"></span>{% endif %}
+      </a>
+      {% if active_farm %}
+      <div style="font-size:10px;color:#6a9e7a;padding:10px 12px 4px;letter-spacing:1px">AI ADVISORY</div>
+      <a href="{% url 'crop_advisory' active_farm.id %}"       class="nav-item {% if 'crop' in request.resolver_match.url_name %}active{% endif %}">
+        <span class="nav-icon">🌱</span> Crop Advisory
+        {% if 'crop' in request.resolver_match.url_name %}<span class="nav-dot"></span>{% endif %}
+      </a>
+      <a href="{% url 'fertilizer_advisory' active_farm.id %}" class="nav-item {% if 'fertilizer' in request.resolver_match.url_name %}active{% endif %}">
+        <span class="nav-icon">🧪</span> Fertilizer
+        {% if 'fertilizer' in request.resolver_match.url_name %}<span class="nav-dot"></span>{% endif %}
+      </a>
+      <a href="{% url 'pest_advisory' active_farm.id %}"       class="nav-item {% if 'pest' in request.resolver_match.url_name %}active{% endif %}">
+        <span class="nav-icon">🦟</span> Pest & Disease
+        {% if 'pest' in request.resolver_match.url_name %}<span class="nav-dot"></span>{% endif %}
+      </a>
+      <a href="{% url 'yield_prediction' active_farm.id %}"   class="nav-item {% if 'yield' in request.resolver_match.url_name %}active{% endif %}">
+        <span class="nav-icon">📊</span> Yield Prediction
+        {% if 'yield' in request.resolver_match.url_name %}<span class="nav-dot"></span>{% endif %}
+      </a>
+      <a href="{% url 'weather_advisory' active_farm.id %}"   class="nav-item {% if 'weather' in request.resolver_match.url_name %}active{% endif %}">
+        <span class="nav-icon">🌤️</span> Weather
+        {% if 'weather' in request.resolver_match.url_name %}<span class="nav-dot"></span>{% endif %}
+      </a>
+      <a href="{% url 'disease_diagnosis' active_farm.id %}"  class="nav-item {% if 'disease' in request.resolver_match.url_name %}active{% endif %}">
+        <span class="nav-icon">🔬</span> Disease Diagnosis
+        {% if 'disease' in request.resolver_match.url_name %}<span class="nav-dot"></span>{% endif %}
+      </a>
+      <a href="{% url 'chat_assistant' active_farm.id %}"     class="nav-item {% if 'chat' in request.resolver_match.url_name %}active{% endif %}">
+        <span class="nav-icon">💬</span> AI Assistant
+        {% if 'chat' in request.resolver_match.url_name %}<span class="nav-dot"></span>{% endif %}
+      </a>
+      {% endif %}
+    </nav>
+
+    <div class="sidebar-footer">
+      RandomForest ML + Rules Engine<br>
+      <a href="{% url 'profile' %}" style="color:#8fb89a">⚙️ Settings</a> &nbsp;
+      <a href="{% url 'logout' %}"  style="color:#8fb89a">🚪 Logout</a>
+    </div>
+  </aside>
+
+  <!-- ── MAIN CONTENT ── -->
+  <div class="main-content">
+    <header class="topbar">
+      <div>
+        <div class="topbar-title">{% block page_title %}AgroGuide AI{% endblock %}</div>
+        <div class="topbar-sub">{% block page_subtitle %}Smart Agricultural Advisory System{% endblock %}</div>
+      </div>
+      <div class="topbar-right">
+        {% if active_farm %}
+        <select id="farmSwitcher" style="padding:6px 10px;border:1px solid var(--border);border-radius:8px;font-size:12px;background:#fafaf8">
+          {% for f in user_farms %}
+          <option value="{{ f.id }}" {% if f.id == active_farm.id %}selected{% endif %}>{{ f.name }}</option>
+          {% endfor %}
+        </select>
+        {% endif %}
+        <a href="{% url 'profile' %}" class="topbar-user">
+          <div class="topbar-avatar">{{ user.first_name.0|default:user.username.0|upper }}</div>
+          <span style="font-size:13px">{{ user.get_full_name|default:user.username }}</span>
+        </a>
+      </div>
+    </header>
+
+    {% if messages %}
+    <div class="messages-bar" style="padding:12px 28px 0">
+      {% for message in messages %}
+      <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="page-body">
+      {% block content %}{% endblock %}
+    </div>
+  </div>
+
+  {% else %}
+  <!-- Unauthenticated layout -->
+  <div style="flex:1">{% block auth_content %}{% endblock %}</div>
+  {% endif %}
+
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+{% load static %}
+<script src="{% static 'js/map.js' %}"></script>
+<script src="{% static 'js/advisory.js' %}"></script>
+<script src="{% static 'js/chat.js' %}"></script>
+
+{% if active_farm %}
+<script>
+document.getElementById('farmSwitcher')?.addEventListener('change', function(){
+  const fid = this.value;
+  const cur = window.location.pathname;
+  // Replace current farm id in URL
+  const newPath = cur.replace(/\/(\d+)\//g, `/${fid}/`);
+  window.location.href = newPath !== cur ? newPath : `/advisory/crop/${fid}/`;
+});
+</script>
+{% endif %}
+
+{% block extra_scripts %}{% endblock %}
+</body>
+</html>

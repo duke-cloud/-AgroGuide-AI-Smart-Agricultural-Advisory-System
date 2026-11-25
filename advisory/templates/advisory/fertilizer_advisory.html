@@ -1,0 +1,77 @@
+{% extends 'base.html' %}
+{% load advisory_tags %}
+{% load advisory_tags %}
+{% block title %}Fertilizer Advisory{% endblock %}
+{% block page_title %}🧪 Fertilizer Recommendation{% endblock %}
+{% block page_subtitle %}Soil-specific fertilizer plan with quantities and application timing{% endblock %}
+{% block content %}
+{% csrf_token %}
+<div class="two-col">
+  <div class="card">
+    <div class="card-title">📋 Crop & Soil Parameters</div>
+    <form id="fertForm">
+      <div class="form-group">
+        <label class="form-label">Crop Type</label>
+        <select name="crop" class="form-control">
+          {% for c in "maize rice cassava yam millet sorghum tomato cowpea groundnut soybean"|split %}
+          <option value="{{ c }}">{{ c|capfirst }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Growth Stage</label>
+        <select name="growth_stage" class="form-control">
+          <option value="0">Pre-Planting</option>
+          <option value="1">Germination</option>
+          <option value="2" selected>Vegetative</option>
+          <option value="3">Flowering</option>
+          <option value="4">Fruiting</option>
+          <option value="5">Maturity</option>
+        </select>
+      </div>
+      <div class="form-grid-3">
+        <div class="form-group">
+          <label class="form-label">Nitrogen N (mg/kg)</label>
+          <input name="N" type="number" class="form-control" value="{{ farm.nitrogen }}">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Phosphorus P</label>
+          <input name="P" type="number" class="form-control" value="{{ farm.phosphorus }}">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Potassium K</label>
+          <input name="K" type="number" class="form-control" value="{{ farm.potassium }}">
+        </div>
+      </div>
+      <div class="form-grid-2">
+        <div class="form-group">
+          <label class="form-label">Soil pH</label>
+          <input name="ph" type="number" class="form-control" value="{{ farm.soil_ph }}" step="0.1">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Farm Area (hectares)</label>
+          <input name="area" type="number" class="form-control" value="{{ farm.size_hectares }}" step="0.1">
+        </div>
+      </div>
+      <button type="submit" class="btn btn-primary btn-full">🧪 Generate Fertilizer Plan</button>
+    </form>
+  </div>
+  <div>
+    <div id="fertResult" class="d-none"></div>
+    <div class="card" style="background:#f8f6f2;border:2px dashed var(--border)" id="fertPlaceholder">
+      <div class="empty-state"><div class="es-icon">🧪</div>
+        <div class="es-title">Awaiting Input</div>
+        <div class="es-sub">Enter your crop, soil nutrients, and farm size to receive a precision fertilizer application plan.</div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block extra_scripts %}
+<script>
+  window.FERT_URL = "{% url 'fertilizer_advisory' farm.id %}";
+  document.getElementById('fertForm').addEventListener('submit', function(){
+    document.getElementById('fertPlaceholder').style.display='none';
+  });
+</script>
+{% endblock %}

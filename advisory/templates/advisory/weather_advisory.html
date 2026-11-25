@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+{% block title %}Weather Advisory{% endblock %}
+{% block page_title %}🌤️ Weather Advisory{% endblock %}
+{% block page_subtitle %}{{ farm.location_name }} · Real-time conditions & 7-day forecast{% endblock %}
+{% block content %}
+
+<!-- Current Weather Hero -->
+<div class="card card-green mb-16">
+  <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:16px">
+    <div>
+      <div style="font-size:11px;color:#8fb89a;letter-spacing:1px;margin-bottom:6px">CURRENT CONDITIONS · {{ farm.location_name|upper }}</div>
+      <div style="font-size:54px;font-weight:700;color:#fff">{{ weather.temp }}°C</div>
+      <div style="font-size:16px;color:#8fb89a">{{ weather.description }}</div>
+      <div style="font-size:12px;color:#6a9e7a;margin-top:4px">Feels like {{ weather.feels_like }}°C
+        {% if weather.simulated %} · <em>Simulated data — set OPENWEATHER_API_KEY for live data</em>{% endif %}
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      {% for label,val in weather_stats %}
+      <div style="background:rgba(255,255,255,.12);border-radius:10px;padding:10px 14px">
+        <div style="font-size:10px;color:#8fb89a">{{ label }}</div>
+        <div style="font-size:16px;font-weight:700;color:#fff">{{ val }}</div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+<!-- Farm Advisories -->
+<div class="mb-16">
+  <div class="card-title" style="font-size:15px;margin-bottom:10px">🌾 Farm Action Advisories</div>
+  {% for adv in advisories %}
+  <div class="alert alert-{{ adv.level }}">{{ adv.icon }} {{ adv.msg }}</div>
+  {% endfor %}
+</div>
+
+<!-- 7-day Forecast -->
+<div class="card mb-16">
+  <div class="card-title">📅 7-Day Forecast</div>
+  <div class="forecast-grid">
+    {% for day in forecast %}
+    <div class="forecast-day {% if forloop.first %}today{% endif %}">
+      <div class="fd-day">{{ day.date }}</div>
+      <div class="fd-icon">{{ day.icon|default:"🌤️" }}</div>
+      <div class="fd-high">{{ day.high }}°</div>
+      <div class="fd-low">{{ day.low }}°</div>
+      <div class="fd-rain">{{ day.rain }}mm</div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+
+<!-- Forecast Chart -->
+<div class="card">
+  <div class="card-title">📈 Rainfall & Temperature Trend</div>
+  <canvas id="forecastChart" height="100"></canvas>
+</div>
+
+{% endblock %}
+{% block extra_scripts %}
+<script>
+  const forecast = {{ forecast_json|safe }};
+  drawForecastChart(forecast);
+</script>
+{% endblock %}

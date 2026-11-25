@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+{% block title %}My Profile — AgroGuide AI{% endblock %}
+{% block page_title %}My Profile{% endblock %}
+{% block page_subtitle %}Manage your account settings{% endblock %}
+{% block content %}
+<div class="two-col">
+  <div class="card">
+    <div class="card-title">👤 Farmer Profile</div>
+    <form method="post" enctype="multipart/form-data">{% csrf_token %}
+      {% for field in form %}
+      <div class="form-group">
+        <label class="form-label">{{ field.label }}</label>
+        {{ field }}
+        {% if field.help_text %}<div class="text-muted mt-4">{{ field.help_text }}</div>{% endif %}
+      </div>
+      {% endfor %}
+      <button type="submit" class="btn btn-primary">💾 Save Profile</button>
+    </form>
+  </div>
+  <div>
+    <div class="card mb-16">
+      <div class="card-title">📊 Account Stats</div>
+      <div class="result-row">
+        <div class="result-item"><div class="ri-label">Farms</div><div class="ri-value">{{ user.farms.count }}</div></div>
+        <div class="result-item"><div class="ri-label">Advisories</div><div class="ri-value">{{ user.advisories.count }}</div></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">🔐 Account Info</div>
+      <div class="text-muted">Username: <strong>{{ user.username }}</strong></div>
+      <div class="text-muted mt-8">Email: <strong>{{ user.email }}</strong></div>
+      <div class="text-muted mt-8">Joined: <strong>{{ user.date_joined|date:"N j, Y" }}</strong></div>
+    </div>
+  </div>
+</div>
+<style>.form-group input,.form-group select,.form-group textarea{width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:8px;font-size:13px;background:#fafaf8;font-family:inherit;box-sizing:border-box}</style>
+{% endblock %}

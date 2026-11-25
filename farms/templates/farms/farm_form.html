@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+{% block title %}{{ title }}{% endblock %}
+{% block page_title %}{{ title }}{% endblock %}
+{% block page_subtitle %}Register a farm plot with soil and location data{% endblock %}
+{% block content %}
+<div class="two-col">
+  <div class="card">
+    <div class="card-title">🌿 Farm Details</div>
+    <form method="post">{% csrf_token %}
+      <div class="form-group"><label class="form-label">Farm Name</label>{{ form.name }}</div>
+      <div class="form-group"><label class="form-label">Location Name (City/Village)</label>{{ form.location_name }}</div>
+      <div class="form-grid-2">
+        <div class="form-group"><label class="form-label">State</label>{{ form.state }}</div>
+        <div class="form-group"><label class="form-label">LGA</label>{{ form.lga }}</div>
+      </div>
+      <div class="form-grid-2">
+        <div class="form-group"><label class="form-label">Latitude</label>{{ form.latitude }}</div>
+        <div class="form-group"><label class="form-label">Longitude</label>{{ form.longitude }}</div>
+      </div>
+      <div style="margin-bottom:14px">
+        <button type="button" id="geoLocBtn" class="btn btn-outline btn-sm">📍 Use My GPS Location</button>
+      </div>
+      <div class="form-grid-2">
+        <div class="form-group"><label class="form-label">Farm Size (hectares)</label>{{ form.size_hectares }}</div>
+        <div class="form-group"><label class="form-label">Soil Type</label>{{ form.soil_type }}</div>
+      </div>
+      <div class="form-grid-3">
+        <div class="form-group"><label class="form-label">Soil pH</label>{{ form.soil_ph }}</div>
+        <div class="form-group"><label class="form-label">Nitrogen (mg/kg)</label>{{ form.nitrogen }}</div>
+        <div class="form-group"><label class="form-label">Phosphorus (mg/kg)</label>{{ form.phosphorus }}</div>
+      </div>
+      <div class="form-grid-2">
+        <div class="form-group"><label class="form-label">Potassium (mg/kg)</label>{{ form.potassium }}</div>
+        <div class="form-group"><label class="form-label">Agro-ecological Zone</label>{{ form.agro_zone }}</div>
+      </div>
+      <div class="form-group" style="display:flex;align-items:center;gap:10px">
+        {{ form.irrigation_available }} <label class="form-label" style="margin:0">Irrigation Available</label>
+      </div>
+      <div class="form-group"><label class="form-label">Notes</label>{{ form.notes }}</div>
+      <div style="display:flex;gap:10px;margin-top:8px">
+        <button type="submit" class="btn btn-primary">💾 Save Farm</button>
+        <a href="{% url 'farm_list' %}" class="btn btn-outline">Cancel</a>
+      </div>
+    </form>
+  </div>
+  <div>
+    <div class="card">
+      <div class="card-title">📍 Farm Location Map</div>
+      <div id="farmMap" style="height:350px;border-radius:10px"></div>
+    </div>
+  </div>
+</div>
+<style>
+.form-group input,.form-group select,.form-group textarea {
+  width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:8px;
+  font-size:13px;background:#fafaf8;font-family:inherit;box-sizing:border-box;outline:none;
+}
+</style>
+{% endblock %}
+{% block extra_scripts %}
+<script>
+  const lat = parseFloat(document.getElementById('id_latitude')?.value) || 9.0579;
+  const lon = parseFloat(document.getElementById('id_longitude')?.value) || 7.4951;
+  initFarmMap(lat, lon, 'farmMap', true);
+</script>
+{% endblock %}

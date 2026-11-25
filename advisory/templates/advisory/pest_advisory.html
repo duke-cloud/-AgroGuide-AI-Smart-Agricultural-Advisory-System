@@ -1,0 +1,77 @@
+{% extends 'base.html' %}
+{% load advisory_tags %}
+{% load advisory_tags %}
+{% block title %}Pest & Disease{% endblock %}
+{% block page_title %}🦟 Pest & Disease Risk{% endblock %}
+{% block page_subtitle %}Early warning and treatment advisory — Gradient Boosting Classifier{% endblock %}
+{% block content %}
+{% csrf_token %}
+<div class="two-col mb-16">
+  <div class="card">
+    <div class="card-title">📋 Risk Assessment Parameters</div>
+    <form id="pestForm">
+      <div class="form-group">
+        <label class="form-label">Crop</label>
+        <select name="crop" class="form-control">
+          {% for c in "maize rice cassava yam millet sorghum tomato cowpea groundnut soybean"|split %}
+          <option value="{{ c }}">{{ c|capfirst }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Growth Stage</label>
+        <select name="growth_stage" class="form-control">
+          <option value="0">Germination</option>
+          <option value="1">Seedling</option>
+          <option value="2" selected>Vegetative</option>
+          <option value="3">Flowering</option>
+          <option value="4">Fruiting / Grain Fill</option>
+        </select>
+      </div>
+      <div class="form-grid-2">
+        <div class="form-group">
+          <label class="form-label">Temperature (°C)</label>
+          <input name="temperature" type="number" class="form-control" value="{{ weather.temp }}">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Humidity (%)</label>
+          <input name="humidity" type="number" class="form-control" value="{{ weather.humidity }}">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Rainfall (mm)</label>
+          <input name="rainfall" type="number" class="form-control" value="{{ weather.rainfall_1h }}">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Wind Speed (km/h)</label>
+          <input name="wind_speed" type="number" class="form-control" value="{{ weather.wind_speed }}">
+        </div>
+      </div>
+      <div class="card" style="background:#f0faf4;border-color:#b2dfdb;margin-bottom:14px">
+        <div style="font-size:12px;color:var(--primary);font-weight:600">🌤️ Current Conditions</div>
+        <div style="font-size:12px;color:var(--text-lt);margin-top:4px">
+          {{ weather.temp }}°C · {{ weather.humidity }}% RH · {{ weather.description }}
+          {% if weather.humidity > 70 %}<span style="color:var(--danger)"> ⚠️ High humidity — elevated fungal risk</span>{% endif %}
+        </div>
+      </div>
+      <button type="submit" class="btn btn-primary btn-full">🔍 Analyze Pest & Disease Risk</button>
+    </form>
+  </div>
+  <div>
+    <div id="pestResult" class="d-none"></div>
+    <div class="card" style="background:#f8f6f2;border:2px dashed var(--border)" id="pestPlaceholder">
+      <div class="empty-state"><div class="es-icon">🔬</div>
+        <div class="es-title">Risk Assessment Ready</div>
+        <div class="es-sub">Enter your crop and current environmental conditions to get a pest and disease risk assessment with treatment recommendations.</div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block extra_scripts %}
+<script>
+  window.PEST_URL = "{% url 'pest_advisory' farm.id %}";
+  document.getElementById('pestForm').addEventListener('submit', function(){
+    document.getElementById('pestPlaceholder').style.display='none';
+  });
+</script>
+{% endblock %}

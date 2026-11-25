@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+{% load advisory_tags %}
+{% load advisory_tags %}
+{% block title %}AI Assistant{% endblock %}
+{% block page_title %}💬 AI Farming Assistant{% endblock %}
+{% block page_subtitle %}Ask anything about your farm — intelligent rules-based advisory engine{% endblock %}
+{% block content %}
+<div class="card">
+  <!-- Quick question buttons -->
+  <div class="chat-quick-btns">
+    {% for q in quick_questions %}
+    <button class="chat-quick-btn" data-q="{{ q }}">{{ q }}</button>
+    {% endfor %}
+  </div>
+
+  <!-- Chat messages box -->
+  <div class="chat-container" id="chatBox">
+    <div class="chat-msg assistant">
+      <div class="chat-avatar ai-avatar">🌾</div>
+      <div class="chat-bubble">Hello {{ user.first_name|default:user.username }}! 👋 I'm AgroGuide AI, your smart farming assistant for <strong>{{ farm.name }}</strong> in {{ farm.state }}.<br><br>
+      Your farm: {{ farm.size_hectares }} ha · {{ farm.get_soil_type_display }} soil · pH {{ farm.soil_ph }}<br><br>
+      Ask me about crop selection, fertilizer, pests, weather, or market prices!</div>
+    </div>
+    {% for msg in history %}
+    <div class="chat-msg {{ msg.role }}">
+      {% if msg.role == 'assistant' %}<div class="chat-avatar ai-avatar">🌾</div>{% endif %}
+      <div class="chat-bubble">{{ msg.content|linebreaksbr }}</div>
+      {% if msg.role == 'user' %}<div class="chat-avatar user-avatar">👨‍🌾</div>{% endif %}
+    </div>
+    {% endfor %}
+  </div>
+
+  <!-- Input area -->
+  <form id="chatForm" class="chat-input-row">
+    {% csrf_token %}
+    <input id="chatInput" class="form-control" placeholder="Ask about crops, fertilizer, pests, weather, prices…" autocomplete="off">
+    <button type="submit" class="btn btn-primary">Send ➤</button>
+  </form>
+</div>
+{% endblock %}
+{% block extra_scripts %}
+<script>
+  window.CHAT_URL = "{% url 'chat_api' farm.id %}";
+  // scroll to bottom on load
+  const cb = document.getElementById('chatBox');
+  if (cb) cb.scrollTop = cb.scrollHeight;
+</script>
+{% endblock %}

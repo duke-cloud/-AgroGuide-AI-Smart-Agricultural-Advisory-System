@@ -1,0 +1,86 @@
+{% extends 'base.html' %}
+{% load advisory_tags %}
+{% load advisory_tags %}
+{% block title %}Yield Prediction{% endblock %}
+{% block page_title %}📊 Yield Prediction{% endblock %}
+{% block page_subtitle %}Estimate your harvest before you plant — RandomForestRegressor{% endblock %}
+{% block content %}
+{% csrf_token %}
+<div class="two-col">
+  <div class="card">
+    <div class="card-title">📋 Prediction Parameters</div>
+    <form id="yieldForm">
+      <div class="form-group">
+        <label class="form-label">Crop Type</label>
+        <select name="crop" class="form-control">
+          {% for c in "maize rice cassava yam millet sorghum tomato cowpea groundnut soybean"|split %}
+          <option value="{{ c }}">{{ c|capfirst }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="form-grid-2">
+        <div class="form-group">
+          <label class="form-label">Farm Area (ha)</label>
+          <input name="area" type="number" class="form-control" value="{{ farm.size_hectares }}" step="0.1">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Expected Rainfall (mm)</label>
+          <input name="rainfall" type="number" class="form-control" value="80">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Temperature (°C)</label>
+          <input name="temperature" type="number" class="form-control" value="28">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Fertilizer Level</label>
+          <select name="fertilizer_level" class="form-control">
+            <option value="0">None</option>
+            <option value="1">Minimal</option>
+            <option value="2" selected>Moderate</option>
+            <option value="3">Optimal</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Soil Quality</label>
+          <select name="soil_quality" class="form-control">
+            <option value="0">Poor</option>
+            <option value="1">Fair</option>
+            <option value="2" selected>Good</option>
+            <option value="3">Excellent</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Planting Month</label>
+          <select name="planting_month" class="form-control">
+            {% for m in "January February March April May June July August September October November December"|split %}
+            <option>{{ m }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+      <div class="form-group" style="display:flex;align-items:center;gap:10px">
+        <input type="checkbox" id="irrigationCheck" {% if farm.irrigation_available %}checked{% endif %}>
+        <label for="irrigationCheck" class="form-label" style="margin:0;cursor:pointer">Irrigation Available</label>
+      </div>
+      <button type="submit" class="btn btn-primary btn-full">🔮 Predict Yield & Revenue</button>
+    </form>
+  </div>
+  <div>
+    <div id="yieldResult" class="d-none"></div>
+    <div class="card" style="background:#f8f6f2;border:2px dashed var(--border)" id="yieldPlaceholder">
+      <div class="empty-state"><div class="es-icon">📊</div>
+        <div class="es-title">Yield Estimator Ready</div>
+        <div class="es-sub">Configure your farm parameters to get predicted harvest yield and estimated revenue in Naira.</div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block extra_scripts %}
+<script>
+  window.YIELD_URL = "{% url 'yield_prediction' farm.id %}";
+  document.getElementById('yieldForm').addEventListener('submit', function(){
+    document.getElementById('yieldPlaceholder').style.display='none';
+  });
+</script>
+{% endblock %}

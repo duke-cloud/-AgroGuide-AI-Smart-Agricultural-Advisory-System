@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+{% block title %}Delete {{ farm.name }}{% endblock %}
+{% block page_title %}Delete Farm{% endblock %}
+{% block content %}
+<div class="card" style="max-width:480px">
+  <div class="alert alert-danger mb-16">⚠️ This will permanently delete <strong>{{ farm.name }}</strong> and all its advisory history.</div>
+  <form method="post" style="display:flex;gap:10px">{% csrf_token %}
+    <button type="submit" class="btn btn-danger">🗑️ Yes, Delete</button>
+    <a href="{% url 'farm_detail' farm.id %}" class="btn btn-outline">Cancel</a>
+  </form>
+</div>
+{% endblock %}

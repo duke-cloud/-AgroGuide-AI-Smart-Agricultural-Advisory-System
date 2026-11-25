@@ -1,0 +1,94 @@
+{% extends 'base.html' %}
+{% block title %}{{ farm.name }}{% endblock %}
+{% block page_title %}{{ farm.name }}{% endblock %}
+{% block page_subtitle %}{{ farm.location_name }} · {{ farm.size_hectares }} ha{% endblock %}
+{% block content %}
+<div style="display:flex;justify-content:flex-end;gap:8px;margin-bottom:16px">
+  <a href="{% url 'farm_edit' farm.pk %}"   class="btn btn-outline btn-sm">✏️ Edit Farm</a>
+  <a href="{% url 'farm_delete' farm.pk %}" class="btn btn-danger  btn-sm">🗑️ Delete</a>
+</div>
+<div class="two-col mb-16">
+  <div>
+    <div class="card mb-16">
+      <div class="card-title">🌿 Soil Profile</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px">
+        {% for label,val in soil_items %}
+        <div class="result-item">
+          <div class="ri-label">{{ label }}</div>
+          <div class="ri-value">{{ val }}</div>
+        </div>
+        {% endfor %}
+      </div>
+      <canvas id="npkChart" height="120"></canvas>
+    </div>
+    <div class="card">
+      <div class="card-title">🌾 Quick Advisory Links</div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px">
+        <a href="{% url 'crop_advisory' farm.id %}"       class="btn btn-primary btn-sm">🌱 Crop Advisory</a>
+        <a href="{% url 'fertilizer_advisory' farm.id %}" class="btn btn-accent  btn-sm">🧪 Fertilizer</a>
+        <a href="{% url 'pest_advisory' farm.id %}"       class="btn btn-outline  btn-sm">🦟 Pest Risk</a>
+        <a href="{% url 'yield_prediction' farm.id %}"    class="btn btn-outline  btn-sm">📊 Yield</a>
+        <a href="{% url 'weather_advisory' farm.id %}"    class="btn btn-outline  btn-sm">🌤️ Weather</a>
+        <a href="{% url 'disease_diagnosis' farm.id %}"   class="btn btn-outline  btn-sm">🔬 Diagnose</a>
+        <a href="{% url 'chat_assistant' farm.id %}"      class="btn btn-outline  btn-sm">💬 AI Chat</a>
+      </div>
+    </div>
+  </div>
+  <div>
+    <div class="card mb-16">
+      <div class="card-title">📍 Farm Location</div>
+      <div id="farmMap" style="height:240px;border-radius:10px;overflow:hidden"></div>
+      <div class="text-muted mt-8" style="font-size:11px">
+        GPS: {{ farm.latitude }}, {{ farm.longitude }}
+        {% if farm.agro_zone %} · {{ farm.agro_zone }}{% endif %}
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">📅 Crop History</div>
+      <form method="post" style="margin-bottom:14px">{% csrf_token %}
+        <div class="form-grid-2" style="margin-bottom:10px">
+          <div class="form-group">
+            <label class="form-label">Crop</label>{{ hist_form.crop_name }}
+          </div>
+          <div class="form-group">
+            <label class="form-label">Season</label>{{ hist_form.season }}
+          </div>
+          <div class="form-group">
+            <label class="form-label">Planting Date</label>{{ hist_form.planting_date }}
+          </div>
+          <div class="form-group">
+            <label class="form-label">Yield (t/ha)</label>{{ hist_form.actual_yield }}
+          </div>
+        </div>
+        <button type="submit" class="btn btn-primary btn-sm">➕ Add Record</button>
+      </form>
+      {% for h in history %}
+      <div style="padding:8px 0;border-bottom:1px solid var(--border);font-size:13px">
+        <div style="display:flex;justify-content:space-between">
+          <strong style="text-transform:capitalize">{{ h.crop_name }}</strong>
+          <span class="badge badge-gray">{{ h.status }}</span>
+        </div>
+        <div class="text-muted">
+          {{ h.season }} · Planted {{ h.planting_date }}
+          {% if h.actual_yield %} · {{ h.actual_yield }} t/ha{% endif %}
+        </div>
+      </div>
+      {% empty %}
+      <div class="text-muted" style="font-size:13px">No crop history recorded yet.</div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+<style>
+.form-group input,.form-group select,.form-group textarea {
+  width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;
+  font-size:13px;background:#fafaf8;font-family:inherit;box-sizing:border-box;
+}
+</style>
+{% endblock %}
+{% block extra_scripts %}
+<script>
+  initFarmMap({{ farm.latitude }}, {{ farm.longitude }}, 'farmMap', false);
+  drawNPKChart({{ farm.nitrogen }}, {{ farm.phosphorus }}, {{ farm.potassium }}, 80, 60, 80);
+</script>
+{% endblock %}

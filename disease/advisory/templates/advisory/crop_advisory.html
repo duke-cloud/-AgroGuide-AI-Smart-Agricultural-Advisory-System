@@ -1,0 +1,81 @@
+{% extends 'base.html' %}
+{% load advisory_tags %}
+{% load advisory_tags %}
+{% block title %}Crop Advisory{% endblock %}
+{% block page_title %}🌱 Crop Advisory{% endblock %}
+{% block page_subtitle %}AI-powered crop selection based on soil & climate data{% endblock %}
+{% block content %}
+{% csrf_token %}
+<div class="two-col">
+  <!-- LEFT: Form -->
+  <div>
+    <div class="card">
+      <div class="card-title">📋 Input Parameters</div>
+      <form id="cropForm">
+        <div class="form-group">
+          <label class="form-label">Soil Nitrogen — N (mg/kg)</label>
+          <input name="N" type="number" class="form-control" value="{{ farm.nitrogen }}" min="0" max="140" step="1">
+        </div>
+        <div class="form-grid-2">
+          <div class="form-group">
+            <label class="form-label">Phosphorus — P (mg/kg)</label>
+            <input name="P" type="number" class="form-control" value="{{ farm.phosphorus }}" min="0" max="145">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Potassium — K (mg/kg)</label>
+            <input name="K" type="number" class="form-control" value="{{ farm.potassium }}" min="0" max="205">
+          </div>
+        </div>
+        <div class="form-grid-2">
+          <div class="form-group">
+            <label class="form-label">Soil pH</label>
+            <input name="ph" type="number" class="form-control" value="{{ farm.soil_ph }}" min="3.5" max="9.0" step="0.1">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Temperature (°C)</label>
+            <input name="temperature" type="number" class="form-control" value="{{ weather.temp }}" min="10" max="45">
+          </div>
+        </div>
+        <div class="form-grid-2">
+          <div class="form-group">
+            <label class="form-label">Humidity (%)</label>
+            <input name="humidity" type="number" class="form-control" value="{{ weather.humidity }}" min="14" max="100">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Rainfall (mm)</label>
+            <input name="rainfall" type="number" class="form-control" value="{{ weather.rainfall_1h }}" min="0" max="300">
+          </div>
+        </div>
+        <div class="card" style="background:#f0faf4;border-color:#b2dfdb;margin-bottom:14px">
+          <div style="font-size:12px;color:var(--primary);font-weight:600;margin-bottom:6px">🌤️ Live Weather at {{ farm.name }}</div>
+          <div style="font-size:12px;color:var(--text-lt)">
+            {{ weather.temp }}°C · {{ weather.humidity }}% humidity · {{ weather.rainfall_1h }}mm rain
+            · {{ weather.description }}
+            {% if weather.simulated %}<span style="color:#e8b84b"> (simulated — add OpenWeatherMap API key for live data)</span>{% endif %}
+          </div>
+        </div>
+        <button type="submit" class="btn btn-primary btn-full">🤖 Get AI Crop Recommendation</button>
+      </form>
+    </div>
+  </div>
+  <!-- RIGHT: Result -->
+  <div>
+    <div id="cropResult" class="d-none"></div>
+    <div class="card" style="background:#f8f6f2;border:2px dashed var(--border)" id="cropPlaceholder">
+      <div class="empty-state">
+        <div class="es-icon">🌱</div>
+        <div class="es-title">Ready for Analysis</div>
+        <div class="es-sub">Fill in soil and climate parameters, then click the button to receive your AI-powered crop recommendation using RandomForestClassifier.</div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block extra_scripts %}
+<script>
+  window.CROP_URL = "{% url 'crop_advisory' farm.id %}";
+  document.getElementById('cropForm').addEventListener('submit', function(){
+    document.getElementById('cropPlaceholder').style.display='none';
+  });
+</script>
+{% endblock %}

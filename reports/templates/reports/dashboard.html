@@ -1,0 +1,101 @@
+{% extends 'base.html' %}
+{% block title %}Dashboard{% endblock %}
+{% block page_title %}Farm Dashboard{% endblock %}
+{% block page_subtitle %}Welcome back, {{ user.first_name|default:user.username }} — here's your farm intelligence overview{% endblock %}
+{% block content %}
+
+<!-- Stats Row -->
+<div class="stats-grid mb-16">
+  <div class="stat-card" style="background:#e8f5e9">
+    <div class="stat-icon">🌿</div>
+    <div class="stat-value">{{ stats.total_farms }}</div>
+    <div class="stat-label">Registered Farms</div>
+  </div>
+  <div class="stat-card" style="background:#fff3e0">
+    <div class="stat-icon">🤖</div>
+    <div class="stat-value">{{ stats.total_advisories }}</div>
+    <div class="stat-label">AI Advisories Run</div>
+  </div>
+  <div class="stat-card" style="background:#e3f2fd">
+    <div class="stat-icon">🌱</div>
+    <div class="stat-value">{{ stats.crop_count }}</div>
+    <div class="stat-label">Crop Recommendations</div>
+  </div>
+  <div class="stat-card" style="background:#fce4ec">
+    <div class="stat-icon">🦟</div>
+    <div class="stat-value">{{ stats.pest_count }}</div>
+    <div class="stat-label">Pest Risk Checks</div>
+  </div>
+</div>
+
+<div class="two-col mb-16">
+  <!-- Left: Farm cards -->
+  <div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+      <div class="card-title" style="font-size:15px;margin:0">🌾 My Farms</div>
+      <a href="{% url 'farm_add' %}" class="btn btn-primary btn-sm">➕ Add Farm</a>
+    </div>
+    {% for farm in farms %}
+    <div class="card mb-16">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px">
+        <div>
+          <div style="font-weight:700;color:var(--primary)">{{ farm.name }}</div>
+          <div class="text-muted">📍 {{ farm.location_name }} · {{ farm.size_hectares }} ha</div>
+        </div>
+        <span class="badge badge-green">{{ farm.get_soil_type_display }}</span>
+      </div>
+      <div class="result-row mb-16" style="grid-template-columns:repeat(3,1fr)">
+        <div class="result-item"><div class="ri-label">pH</div><div class="ri-value">{{ farm.soil_ph }}</div></div>
+        <div class="result-item"><div class="ri-label">Nitrogen</div><div class="ri-value">{{ farm.nitrogen }}</div></div>
+        <div class="result-item"><div class="ri-label">Irrigation</div><div class="ri-value">{% if farm.irrigation_available %}✅{% else %}❌{% endif %}</div></div>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <a href="{% url 'crop_advisory' farm.id %}"       class="btn btn-primary btn-sm">🌱 Crop</a>
+        <a href="{% url 'fertilizer_advisory' farm.id %}" class="btn btn-accent  btn-sm">🧪 Fertilizer</a>
+        <a href="{% url 'pest_advisory' farm.id %}"       class="btn btn-outline  btn-sm">🦟 Pest</a>
+        <a href="{% url 'weather_advisory' farm.id %}"    class="btn btn-outline  btn-sm">🌤️ Weather</a>
+        <a href="{% url 'chat_assistant' farm.id %}"      class="btn btn-outline  btn-sm">💬 Chat</a>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  <!-- Right: Recent advisories + chart -->
+  <div>
+    <div class="card mb-16">
+      <div class="card-title">📈 Soil Nutrient Overview ({{ farm.name }})</div>
+      <canvas id="npkChart" height="130"></canvas>
+    </div>
+    <div class="card">
+      <div class="card-title">🕐 Recent Advisory History</div>
+      {% if advisories %}
+      <table class="data-table">
+        <thead>
+          <tr><th>Type</th><th>Farm</th><th>Date</th></tr>
+        </thead>
+        <tbody>
+          {% for adv in advisories %}
+          <tr>
+            <td><span class="badge badge-gray">{{ adv.get_advisory_type_display }}</span></td>
+            <td>{{ adv.farm.name }}</td>
+            <td class="text-muted">{{ adv.created_at|date:"M j" }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <div class="empty-state" style="padding:20px">
+        <div style="font-size:32px">📋</div>
+        <div class="es-sub">No advisories yet. Use any AI module to get started.</div>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+{% block extra_scripts %}
+<script>
+  drawNPKChart({{ farm.nitrogen }}, {{ farm.phosphorus }}, {{ farm.potassium }}, 80, 60, 80);
+</script>
+{% endblock %}
